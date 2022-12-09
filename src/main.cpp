@@ -24,7 +24,6 @@ void colorWipe(uint32_t c, uint16_t wait) {
 
 
 void setup() {
-  Serial.begin(9600);
   RGB_Strip.begin();
   RGB_Strip.show();
   RGB_Strip.setBrightness(200);    // Set brightness, 0-255 (darkest - brightest)
@@ -40,26 +39,25 @@ void setup() {
 
 void loop() {
 
-  if(digitalRead(TOUCH_SENSOR) == 1){
+  ClientMQTT.loop(); 
+
+  appendPayload("Touche", digitalRead(TOUCH_SENSOR));
+  appendPayload("Moteur", digitalRead(MOTOR));
+  sendPayload();
+
+  if(touchStatus == "true"){
     colorWipe(RGB_Strip.Color(0, 255, 0), 1000);  // Green
     digitalWrite(MOTOR, HIGH);
-
-    appendPayload("Touche", 1);
-    appendPayload("Moteur", 1);
     appendPayload("LED", 1);
-    sendPayload();
 
-    delay(500);
     
-  }else{
+  }
+
+  if(touchStatus == "false"){
     colorWipe(RGB_Strip.Color(255, 0, 0), 1000);  // Red
     digitalWrite(MOTOR, LOW);
-
-    appendPayload("Touche", 0);
-    appendPayload("Moteur", 0);
-    appendPayload("LED", 0);
-    sendPayload();
-    delay(500);
+    appendPayload("LED", 1);
   }
+  delay(700);
 }
 

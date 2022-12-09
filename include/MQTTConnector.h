@@ -8,7 +8,7 @@
 */
 
 
-
+#include <Arduino.h>
 #include <MQTT.h>
 #include <Secrets.h>
 
@@ -29,12 +29,31 @@ MQTTClient ClientMQTT;      // Création d'un client MQTT pour l'échange de don
 
 String Payload ="{";      // Chaine de caractère qui contiendra le message envoyer de l'objet vers thingsboard
 
+String touchStatus = "";
+
+
+void messageReceived(String &topic, String &payload) {
+
+  Serial.println("Message Recu");
+  Serial.println(payload);
+  Serial.println(topic);
+  
+  //Serial.println(payload.substring(11,12));
+  touchStatus = payload.substring(payload.lastIndexOf(':') + 1 ,payload.indexOf('}'));
+  Serial.println(touchStatus);
+  }
+
+
+
+
 
 // Fonctionnalité de branchement utilisant le protocole MQTT
 
 void MQTTConnect() {
   
   ClientMQTT.begin(MQTT_SERVER, MQTT_SERVER_PORT, ClientWIFI);
+
+  ClientMQTT.onMessage(messageReceived);
   
   while (!ClientMQTT.connect(DEVICE_ID, TOKEN, "")) {
     Serial.print(".");
@@ -42,6 +61,8 @@ void MQTTConnect() {
   }
 
   Serial.println("\nBranché au broker MQTT!\n");
+  
+  ClientMQTT.subscribe("v1/devices/me/rpc/request/+");
 
 }
 
